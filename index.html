@@ -622,19 +622,19 @@
     <h2 class="section-title">Clean, powerful interfaces.<br>Light &amp; dark mode included.</h2>
   </div>
   <div class="screenshots-grid">
+    <!--
+      Screenshot cards: the JS below will attempt to load screenshot-1.jpg through
+      screenshot-4.jpg (place them alongside this HTML on GitHub Pages).
+      Each card falls back to the .ss-placeholder if the image fails to load.
+    -->
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/placeholder/placeholder/main/1.jpg"
-           onerror="this.style.display='none'; this.parentNode.querySelector('.ss-placeholder').style.display='flex';"
-           alt="File Organizer — Light Mode" />
-      <!-- Inline screenshot placeholder rendered via CSS if img fails -->
-      <div class="ss-placeholder" style="display:none; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
+      <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
         <span style="font-size:2.5rem;">📂</span>
-        <span style="color:var(--muted); font-size:.9rem;">File Organizer</span>
+        <span style="color:var(--muted); font-size:.9rem;">File Organizer — Light Mode</span>
       </div>
       <div class="screenshot-label">📂 File Organizer — Light Mode</div>
     </div>
     <div class="screenshot-card">
-      <img src="" style="display:none;" alt="" />
       <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
         <span style="font-size:2.5rem;">📂</span>
         <span style="color:var(--muted); font-size:.9rem;">File Organizer — Dark Mode</span>
@@ -836,29 +836,58 @@
 
 <!-- SCROLL REVEAL JS -->
 <script>
+  // ── Scroll-reveal observer ──
   const reveals = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
     });
   }, { threshold: 0.1 });
   reveals.forEach(el => io.observe(el));
 
-  // Embed actual uploaded screenshots using data URIs would be too large inline.
-  // Instead, replace the placeholder divs with real <img> tags pointing to
-  // assets placed alongside this HTML on GitHub Pages.
-  // Name your screenshots: screenshot-1.jpg, screenshot-2.jpg, screenshot-3.jpg, screenshot-4.jpg
+  // ── Screenshot injection ──
+  // Place screenshot-1.jpg through screenshot-4.jpg alongside this HTML file
+  // on GitHub Pages. Each image is injected before its placeholder; if the
+  // image fails to load the placeholder remains visible as a fallback.
   const screenshotSrcs = [
-    'screenshot-1.jpg', // Organizer light
-    'screenshot-2.jpg', // Organizer dark
-    'screenshot-3.jpg', // Deduplicator light
-    'screenshot-4.jpg', // Deduplicator dark
+    'screenshot-1.jpg', // Organizer — Light Mode
+    'screenshot-2.jpg', // Organizer — Dark Mode
+    'screenshot-3.jpg', // Deduplicator — Light Mode
+    'screenshot-4.jpg', // Deduplicator — Dark Mode
   ];
+
   document.querySelectorAll('.screenshot-card').forEach((card, i) => {
+    const src = screenshotSrcs[i];
+    if (!src) return;
+
     const placeholder = card.querySelector('.ss-placeholder');
-    if (!screenshotSrcs[i]) return;
+    const label = card.querySelector('.screenshot-label');
+
     const img = document.createElement('img');
-    img.src = screenshotSrcs[i];
-    img.alt = placeholder ? placeholder.innerText : '';
+    img.alt = placeholder ? placeholder.innerText.trim() : '';
     img.style.width = '100%';
-    img.style.display = 'block'
+    img.style.display = 'none'; // hidden until successfully loaded
+
+    img.addEventListener('load', () => {
+      img.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+    });
+
+    img.addEventListener('error', () => {
+      // Image unavailable — placeholder remains visible, nothing to do.
+      img.remove();
+    });
+
+    // Insert the img before the placeholder so the label stays on top.
+    card.insertBefore(img, placeholder);
+
+    // Set src after attaching listeners.
+    img.src = src;
+  });
+</script>
+
+</body>
+</html>
