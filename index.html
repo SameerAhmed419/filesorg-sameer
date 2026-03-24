@@ -4,6 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity</title>
+
+  <!-- Primary Meta -->
+  <meta name="description" content="File Organizer & Duplicate Remover is a Windows app that organises your files by type, date, or extension, and hunts down every duplicate wasting your space. One-time purchase for $2.99." />
+  <meta name="keywords" content="file organizer, duplicate remover, duplicate file finder, Windows file organizer, clean PC, remove duplicates, file management, Microsoft Store" />
+  <meta name="author" content="Sameer Ahmed" />
+  <link rel="canonical" href="https://sameerahmed419.github.io/filesorg-sameer/" />
+
+  <!-- Open Graph (Facebook, LinkedIn, Reddit previews) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sameerahmed419.github.io/filesorg-sameer/" />
+  <meta property="og:title" content="File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity" />
+  <meta property="og:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $2.99." />
+  <meta property="og:image" content="https://sameerahmed419.github.io/filesorg-sameer/screenshot-1.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://sameerahmed419.github.io/filesorg-sameer/" />
+  <meta name="twitter:title" content="File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity" />
+  <meta name="twitter:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $2.99." />
+  <meta name="twitter:image" content="https://sameerahmed419.github.io/filesorg-sameer/screenshot-1.jpg" />
+
+  <!-- Structured Data (Google Rich Results) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "File Organizer & Duplicate Remover",
+    "operatingSystem": "Windows",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "2.99",
+      "priceCurrency": "USD"
+    },
+    "description": "Organise your files by type, date, or extension and remove duplicate files on Windows. Features preview mode, extension mismatch correction, and a built-in duplicate remover.",
+    "url": "https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare",
+    "screenshot": "https://sameerahmed419.github.io/filesorg-sameer/screenshot-1.jpg"
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
@@ -821,11 +861,4 @@
     img.src = screenshotSrcs[i];
     img.alt = placeholder ? placeholder.innerText : '';
     img.style.width = '100%';
-    img.style.display = 'block';
-    img.onerror = () => img.remove(); // keep placeholder if file missing
-    card.insertBefore(img, placeholder);
-  });
-</script>
-
-</body>
-</html>
+    img.style.display = 'block'
