@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0c10;
+      --surface:   #111318;
+      --surface2:  #181b22;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #4f8ef7;
+      --accent2:   #7b5cf7;
+      --green:     #3ecf8e;
+      --red:       #f25f5c;
+      --text:      #e8eaf0;
+      --muted:     #8891a4;
+      --price:     #ffd166;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.35;
+    }
+
+    /* ── GRID LINES ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── GLOW ORBS ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.18;
+    }
+    .orb-1 { width: 600px; height: 600px; background: var(--accent2); top: -200px; left: -200px; }
+    .orb-2 { width: 500px; height: 500px; background: var(--accent); bottom: 100px; right: -150px; }
+    .orb-3 { width: 400px; height: 400px; background: var(--green); top: 40%; left: 30%; opacity: 0.08; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2.5rem;
+      background: rgba(10,12,16,0.72);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: .55rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      padding: .55rem 1.35rem;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .88rem;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: opacity .2s, transform .15s;
+    }
+    .nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 1.5rem 5rem;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.25);
+      color: var(--accent);
+      font-size: .8rem; font-weight: 500;
+      padding: .35rem .85rem;
+      border-radius: 999px;
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
+      animation: fadeUp .6s ease both;
+    }
+    .hero-badge-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+      animation: fadeUp .7s .1s ease both;
+    }
+    .hero-title .line-2 {
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      max-width: 560px;
+      margin: 1.6rem auto 2.8rem;
+      font-weight: 300;
+      animation: fadeUp .7s .2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp .7s .3s ease both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .55rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      padding: .95rem 2.2rem;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      box-shadow: 0 0 30px rgba(79,142,247,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(79,142,247,0.45); }
+    .btn-primary .price-tag {
+      background: rgba(255,255,255,0.15);
+      padding: .15rem .55rem;
+      border-radius: 5px;
+      font-size: .85rem;
+      color: var(--price);
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: .95rem 2rem;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+    /* ── TRUST STRIP ── */
+    .trust-strip {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+      gap: 2rem;
+      padding: 2rem 2rem 4rem;
+      animation: fadeUp .7s .4s ease both;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: .5rem;
+      color: var(--muted); font-size: .88rem;
+    }
+    .trust-item svg { flex-shrink: 0; }
+
+    /* ── SCREENSHOTS ── */
+    .screenshots {
+      position: relative; z-index: 1;
+      padding: 3rem 1.5rem 6rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .screenshot-card {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: transform .3s, box-shadow .3s;
+      position: relative;
+    }
+    .screenshot-card:hover {
+      transform: translateY(-5px) scale(1.01);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+    .screenshot-card img {
+      width: 100%; display: block;
+    }
+    .screenshot-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: .75rem 1rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: .85rem;
+      color: var(--text);
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      position: relative; z-index: 1;
+      padding: 5rem 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .features-header {
+      text-align: center; margin-bottom: 3.5rem;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .section-sub {
+      color: var(--muted);
+      margin-top: .75rem;
+      font-size: 1.05rem;
+      font-weight: 300;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: border-color .3s, background .3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0; transition: opacity .3s;
+    }
+    .feature-card:hover { border-color: rgba(79,142,247,0.25); background: var(--surface2); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1.1rem;
+    }
+    .feature-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1.05rem;
+      margin-bottom: .5rem;
+    }
+    .feature-desc {
+      color: var(--muted);
+      font-size: .93rem;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how {
+      position: relative; z-index: 1;
+      padding: 5rem 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .how-header { text-align: center; margin-bottom: 3.5rem; }
+    .steps {
+      display: flex; flex-direction: column; gap: 0;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute; left: 22px; top: 24px; bottom: 24px; width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent);
+      opacity: 0.35;
+    }
+    .step {
+      display: flex; gap: 1.5rem;
+      padding: 1.5rem 0;
+    }
+    .step-num {
+      width: 46px; height: 46px; flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: .95rem;
+      color: var(--accent);
+      position: relative; z-index: 1;
+    }
+    .step-content { padding-top: .3rem; }
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1.05rem;
+      margin-bottom: .3rem;
+    }
+    .step-desc { color: var(--muted); font-size: .93rem; font-weight: 300; }
+
+    /* ── COMPARISON ── */
+    .comparison {
+      position: relative; z-index: 1;
+      padding: 5rem 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .comparison-header { text-align: center; margin-bottom: 3rem; }
+    .comp-table {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .comp-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-row:last-child { border-bottom: none; }
+    .comp-cell {
+      padding: 1rem 1.25rem;
+      font-size: .92rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .comp-cell.header {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: .85rem;
+      background: var(--surface2);
+    }
+    .comp-cell.ours { color: var(--green); }
+    .comp-cell.theirs { color: var(--red); }
+    .comp-cell.feature-name { color: var(--muted); }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      position: relative; z-index: 1;
+      padding: 6rem 1.5rem 8rem;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .cta-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3.5rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--green));
+    }
+    .cta-glow {
+      position: absolute; top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(79,142,247,0.12), transparent 70%);
+      pointer-events: none;
+    }
+    .cta-price {
+      font-family: 'Syne', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--price);
+      letter-spacing: -0.03em;
+    }
+    .cta-price-note {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: .2rem;
+      margin-bottom: 1.75rem;
+    }
+    .cta-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: .75rem;
+    }
+    .cta-sub {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+    .cta-features-list {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: .6rem;
+      margin-bottom: 2.25rem;
+    }
+    .cta-feat-tag {
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.2);
+      color: var(--accent);
+      font-size: .8rem;
+      padding: .3rem .8rem;
+      border-radius: 999px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 1rem;
+      color: var(--muted); font-size: .85rem;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      nav { padding: 1rem 1.25rem; }
+      .hero { padding: 7rem 1.25rem 4rem; }
+      .screenshots-grid { grid-template-columns: 1fr; }
+      .comp-row { grid-template-columns: 1.4fr 1fr 1fr; }
+      .cta-box { padding: 2.5rem 1.5rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+
+    /* Windows store badge colours */
+    .ms-store-svg { display: inline-block; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+<!-- Ambient glows -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="nav-logo-icon">📁</span>
+    File Organizer
+  </a>
+  <a class="nav-cta" href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener">
+    Get it — $2.99
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Available on the Microsoft Store
+  </div>
+  <h1 class="hero-title">
+    Stop drowning in<br>
+    <span class="line-2">digital clutter.</span>
+  </h1>
+  <p class="hero-sub">
+    One app to organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space.
+  </p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.2" fill="#fff"/><rect x="10" y="1" width="7" height="7" rx="1.2" fill="#fff" opacity=".7"/><rect x="1" y="10" width="7" height="7" rx="1.2" fill="#fff" opacity=".7"/><rect x="10" y="10" width="7" height="7" rx="1.2" fill="#fff" opacity=".5"/></svg>
+      Download from Microsoft Store
+      <span class="price-tag">$2.99</span>
+    </a>
+    <a class="btn-secondary" href="#features">
+      See features ↓
+    </a>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <span class="trust-item">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.545 4.758H14.5l-4.09 2.972 1.545 4.758L8 10.516l-3.955 2.972 1.545-4.758L1.5 5.758h4.955L8 1z" fill="#ffd166"/></svg>
+    Trusted on Microsoft Store
+  </span>
+  <span class="trust-item">
+    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M13 4L6.5 11 3 7.5" stroke="#3ecf8e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    One-time purchase, no subscription
+  </span>
+  <span class="trust-item">
+    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" stroke="#4f8ef7" stroke-width="1.6"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="#4f8ef7" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Preview before any changes
+  </span>
+  <span class="trust-item">
+    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="#7b5cf7" stroke-width="1.6"/><path d="M8 5v3l2 2" stroke="#7b5cf7" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Works instantly, zero setup
+  </span>
+</div>
+
+<!-- SCREENSHOTS -->
+<section class="screenshots reveal">
+  <div style="text-align:center; margin-bottom:2.5rem;">
+    <div class="section-label">See it in action</div>
+    <h2 class="section-title">Clean, powerful interfaces.<br>Light &amp; dark mode included.</h2>
+  </div>
+  <div class="screenshots-grid">
+    <div class="screenshot-card">
+      <img src="https://raw.githubusercontent.com/placeholder/placeholder/main/1.jpg"
+           onerror="this.style.display='none'; this.parentNode.querySelector('.ss-placeholder').style.display='flex';"
+           alt="File Organizer — Light Mode" />
+      <!-- Inline screenshot placeholder rendered via CSS if img fails -->
+      <div class="ss-placeholder" style="display:none; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
+        <span style="font-size:2.5rem;">📂</span>
+        <span style="color:var(--muted); font-size:.9rem;">File Organizer</span>
+      </div>
+      <div class="screenshot-label">📂 File Organizer — Light Mode</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="" style="display:none;" alt="" />
+      <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
+        <span style="font-size:2.5rem;">📂</span>
+        <span style="color:var(--muted); font-size:.9rem;">File Organizer — Dark Mode</span>
+      </div>
+      <div class="screenshot-label">📂 File Organizer — Dark Mode</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
+        <span style="font-size:2.5rem;">🔍</span>
+        <span style="color:var(--muted); font-size:.9rem;">Duplicate Remover — Light Mode</span>
+      </div>
+      <div class="screenshot-label">🔍 Duplicate Remover — Light Mode</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
+        <span style="font-size:2.5rem;">🔍</span>
+        <span style="color:var(--muted); font-size:.9rem;">Duplicate Remover — Dark Mode</span>
+      </div>
+      <div class="screenshot-label">🔍 Duplicate Remover — Dark Mode</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features reveal" id="features">
+  <div class="features-header">
+    <div class="section-label">Everything you need</div>
+    <h2 class="section-title">Powerful tools. Zero bloat.</h2>
+    <p class="section-sub">Two focused modules that do exactly what they promise.</p>
+  </div>
+
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(79,142,247,0.12);">🗂️</div>
+      <div class="feature-title">6 Organisation Methods</div>
+      <div class="feature-desc">Group files by type, extension, type+extension combo, creation year, creation month, or year+month. Your folder, your rules.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(62,207,142,0.12);">👁️</div>
+      <div class="feature-title">Preview Before You Act</div>
+      <div class="feature-desc">See exactly what will change before anything is touched. No surprises, no regrets. Full preview mode built right in.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(123,92,247,0.12);">🛡️</div>
+      <div class="feature-title">Extension Mismatch Fixer</div>
+      <div class="feature-desc">Detect and correct files whose extensions don't match their actual content — a surprisingly common mess on ageing PCs.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(242,95,92,0.12);">🔍</div>
+      <div class="feature-title">Deep Duplicate Detection</div>
+      <div class="feature-desc">Finds exact duplicates by content — not just filename. Pages through every group with rich previews and per-file metadata.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(255,209,102,0.12);">⚡</div>
+      <div class="feature-title">Smart Keep Strategies</div>
+      <div class="feature-desc">Keep Newest, Keep Oldest, Keep Shortest Path, Keep Most Nested, or just Keep One. One click marks the rest for removal.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(79,142,247,0.12);">🌙</div>
+      <div class="feature-title">Light &amp; Dark Mode</div>
+      <div class="feature-desc">A polished dark theme and a crisp light theme. Switch with one click. Both feel native and intentional, not an afterthought.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(62,207,142,0.12);">♻️</div>
+      <div class="feature-title">Recycle Bin Safe Deletes</div>
+      <div class="feature-desc">Files go to the Recycle Bin by default. For power users, a bypass option permanently removes duplicates in one pass.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(123,92,247,0.12);">🚫</div>
+      <div class="feature-title">Exclude File Types</div>
+      <div class="feature-desc">Specify extensions to skip entirely — keep your <code style="background:rgba(255,255,255,0.07); padding:.1rem .3rem; border-radius:4px; font-size:.88rem;">.lnk</code> shortcuts, system files, or anything you choose completely untouched.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how reveal">
+  <div class="how-header">
+    <div class="section-label">Simple workflow</div>
+    <h2 class="section-title">Up and running in 60 seconds.</h2>
+    <p class="section-sub">No account, no cloud, no nonsense. Everything stays on your machine.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Browse to a folder</div>
+        <div class="step-desc">Pick any folder on your PC — your Downloads, Desktop, or a sprawling media archive.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Choose your method or scan for duplicates</div>
+        <div class="step-desc">In the Organizer tab, pick how you want files grouped. In the Deduplicator tab, hit scan and let the engine do its work.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Review the preview</div>
+        <div class="step-desc">See every proposed change or every duplicate group before committing. Mark exactly which files to keep or remove.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Apply — done.</div>
+        <div class="step-desc">One click. Files moved, renamed, or removed as requested. Your folder is finally in order.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison reveal">
+  <div class="comparison-header">
+    <div class="section-label">Why us?</div>
+    <h2 class="section-title">Compare the options.</h2>
+  </div>
+  <div class="comp-table">
+    <div class="comp-row">
+      <div class="comp-cell header feature-name">Feature</div>
+      <div class="comp-cell header" style="color:var(--accent);">File Organizer</div>
+      <div class="comp-cell header" style="color:var(--muted);">Free alternatives</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">Preview before changes</div>
+      <div class="comp-cell ours">✓ Always</div>
+      <div class="comp-cell theirs">✗ Rarely</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">Duplicate detection by content</div>
+      <div class="comp-cell ours">✓ Yes</div>
+      <div class="comp-cell theirs">✗ Filename only</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">Extension mismatch correction</div>
+      <div class="comp-cell ours">✓ Built-in</div>
+      <div class="comp-cell theirs">✗ Not available</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">Light + Dark theme</div>
+      <div class="comp-cell ours">✓ Both</div>
+      <div class="comp-cell theirs">✗ Usually neither</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">Price</div>
+      <div class="comp-cell ours" style="color:var(--price);">$2.99 once</div>
+      <div class="comp-cell theirs">$0 + bloatware</div>
+    </div>
+    <div class="comp-row">
+      <div class="comp-cell feature-name">No subscription</div>
+      <div class="comp-cell ours">✓ Lifetime</div>
+      <div class="comp-cell theirs">✗ Often freemium</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BOX -->
+<section class="cta-section reveal">
+  <div class="cta-box">
+    <div class="cta-glow"></div>
+    <div class="cta-price">$2.99</div>
+    <div class="cta-price-note">One-time purchase. No subscription. No nonsense.</div>
+    <h2 class="cta-title">Ready for a tidy PC?</h2>
+    <p class="cta-sub">Join the users who already reclaimed their storage and their sanity. Get File Organizer &amp; Duplicate Remover right now on the Microsoft Store.</p>
+    <div class="cta-features-list">
+      <span class="cta-feat-tag">File Organizer</span>
+      <span class="cta-feat-tag">Duplicate Remover</span>
+      <span class="cta-feat-tag">Dark + Light Mode</span>
+      <span class="cta-feat-tag">Preview Mode</span>
+      <span class="cta-feat-tag">Extension Fixer</span>
+    </div>
+    <a class="btn-primary" href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener" style="font-size:1.05rem; padding:1rem 2.5rem;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="8" height="8" rx="1.5" fill="#fff"/><rect x="11" y="1" width="8" height="8" rx="1.5" fill="#fff" opacity=".7"/><rect x="1" y="11" width="8" height="8" rx="1.5" fill="#fff" opacity=".7"/><rect x="11" y="11" width="8" height="8" rx="1.5" fill="#fff" opacity=".5"/></svg>
+      Get it on the Microsoft Store
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2025 File Organizer &amp; Duplicate Remover. All rights reserved.</span>
+  <div style="display:flex; gap:1.5rem;">
+    <a href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener">Microsoft Store</a>
+    <a href="mailto:support@example.com">Support</a>
+  </div>
+</footer>
+
+<!-- SCROLL REVEAL JS -->
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => io.observe(el));
+
+  // Embed actual uploaded screenshots using data URIs would be too large inline.
+  // Instead, replace the placeholder divs with real <img> tags pointing to
+  // assets placed alongside this HTML on GitHub Pages.
+  // Name your screenshots: screenshot-1.jpg, screenshot-2.jpg, screenshot-3.jpg, screenshot-4.jpg
+  const screenshotSrcs = [
+    'screenshot-1.jpg', // Organizer light
+    'screenshot-2.jpg', // Organizer dark
+    'screenshot-3.jpg', // Deduplicator light
+    'screenshot-4.jpg', // Deduplicator dark
+  ];
+  document.querySelectorAll('.screenshot-card').forEach((card, i) => {
+    const placeholder = card.querySelector('.ss-placeholder');
+    if (!screenshotSrcs[i]) return;
+    const img = document.createElement('img');
+    img.src = screenshotSrcs[i];
+    img.alt = placeholder ? placeholder.innerText : '';
+    img.style.width = '100%';
+    img.style.display = 'block';
+    img.onerror = () => img.remove(); // keep placeholder if file missing
+    card.insertBefore(img, placeholder);
+  });
+</script>
+
+</body>
+</html>
