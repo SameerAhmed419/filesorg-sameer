@@ -6,7 +6,7 @@
   <title>File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity</title>
 
   <!-- Primary Meta -->
-  <meta name="description" content="File Organizer & Duplicate Remover is a Windows app that organises your files by type, date, or extension, and hunts down every duplicate wasting your space. One-time purchase for $2.99." />
+  <meta name="description" content="File Organizer & Duplicate Remover is a Windows app that organises your files by type, date, or extension, and hunts down every duplicate wasting your space. One-time purchase for $4.99." />
   <meta name="keywords" content="file organizer, duplicate remover, duplicate file finder, Windows file organizer, clean PC, remove duplicates, file management, Microsoft Store" />
   <meta name="author" content="Sameer Ahmed" />
   <link rel="canonical" href="https://sameerahmed419.github.io/filesorg-sameer/" />
@@ -15,14 +15,14 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://sameerahmed419.github.io/filesorg-sameer/" />
   <meta property="og:title" content="File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity" />
-  <meta property="og:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $2.99." />
+  <meta property="og:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $4.99." />
   <meta property="og:image" content="https://sameerahmed419.github.io/filesorg-sameer/screenshot-1.jpg" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://sameerahmed419.github.io/filesorg-sameer/" />
   <meta name="twitter:title" content="File Organizer & Duplicate Remover — Clean Your PC, Keep Your Sanity" />
-  <meta name="twitter:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $2.99." />
+  <meta name="twitter:description" content="Organise your files by type, date, or extension — and ruthlessly hunt down every duplicate wasting your space. One-time purchase, $4.99." />
   <meta name="twitter:image" content="https://sameerahmed419.github.io/filesorg-sameer/screenshot-1.jpg" />
 
   <!-- Structured Data (Google Rich Results) -->
@@ -35,7 +35,7 @@
     "applicationCategory": "UtilitiesApplication",
     "offers": {
       "@type": "Offer",
-      "price": "2.99",
+      "price": "2.49",
       "priceCurrency": "USD"
     },
     "description": "Organise your files by type, date, or extension and remove duplicate files on Windows. Features preview mode, extension mismatch correction, and a built-in duplicate remover.",
@@ -62,6 +62,7 @@
       --text:      #e8eaf0;
       --muted:     #8891a4;
       --price:     #ffd166;
+      --sale:      #ff6b35;
     }
 
     html { scroll-behavior: smooth; }
@@ -145,17 +146,49 @@
       text-decoration: none;
       letter-spacing: 0.02em;
       transition: opacity .2s, transform .15s;
+      display: flex; align-items: center; gap: .5rem;
     }
     .nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+    .nav-cta .nav-price-old {
+      text-decoration: line-through;
+      opacity: 0.6;
+      font-size: .78rem;
+    }
+    .nav-cta .nav-price-new {
+      color: var(--price);
+    }
+
+    /* ── SALE BANNER ── */
+    .sale-banner {
+      position: relative; z-index: 99;
+      background: linear-gradient(90deg, var(--sale), #ff9f43);
+      color: #fff;
+      text-align: center;
+      padding: .55rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .85rem;
+      letter-spacing: 0.04em;
+      margin-top: 60px; /* below fixed nav */
+    }
+    .sale-banner-inner {
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+    }
+    .sale-banner .sale-pill {
+      background: rgba(255,255,255,0.25);
+      border-radius: 999px;
+      padding: .15rem .6rem;
+      font-size: .8rem;
+    }
 
     /* ── HERO ── */
     .hero {
       position: relative; z-index: 1;
-      min-height: 100vh;
+      min-height: calc(100vh - 100px);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       text-align: center;
-      padding: 8rem 1.5rem 5rem;
+      padding: 5rem 1.5rem 5rem;
     }
 
     .hero-badge {
@@ -220,13 +253,25 @@
       transition: transform .2s, box-shadow .2s;
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(79,142,247,0.45); }
-    .btn-primary .price-tag {
+
+    /* ── PRICE TAG IN BUTTON ── */
+    .price-tag {
       background: rgba(255,255,255,0.15);
       padding: .15rem .55rem;
       border-radius: 5px;
       font-size: .85rem;
-      color: var(--price);
+      display: inline-flex; align-items: center; gap: .35rem;
     }
+    .price-tag .old-price {
+      text-decoration: line-through;
+      opacity: 0.6;
+      font-size: .78rem;
+    }
+    .price-tag .new-price {
+      color: var(--price);
+      font-weight: 700;
+    }
+
     .btn-secondary {
       display: inline-flex; align-items: center; gap: .5rem;
       border: 1px solid var(--border);
@@ -470,13 +515,39 @@
       background: radial-gradient(circle, rgba(79,142,247,0.12), transparent 70%);
       pointer-events: none;
     }
-    .cta-price {
+
+    /* ── CTA PRICE BLOCK ── */
+    .cta-price-block {
+      display: flex; align-items: baseline; justify-content: center; gap: .75rem;
+      margin-bottom: .3rem;
+    }
+    .cta-price-old {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-decoration: line-through;
+      letter-spacing: -0.02em;
+    }
+    .cta-price-new {
       font-family: 'Syne', sans-serif;
       font-size: 3.5rem;
       font-weight: 800;
       color: var(--price);
       letter-spacing: -0.03em;
     }
+    .cta-sale-badge {
+      background: linear-gradient(135deg, var(--sale), #ff9f43);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: .85rem;
+      padding: .3rem .7rem;
+      border-radius: 8px;
+      letter-spacing: 0.02em;
+      align-self: center;
+    }
+
     .cta-price-note {
       color: var(--muted);
       font-size: .9rem;
@@ -541,15 +612,13 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 680px) {
       nav { padding: 1rem 1.25rem; }
-      .hero { padding: 7rem 1.25rem 4rem; }
+      .hero { padding: 5rem 1.25rem 4rem; }
       .screenshots-grid { grid-template-columns: 1fr; }
       .comp-row { grid-template-columns: 1.4fr 1fr 1fr; }
       .cta-box { padding: 2.5rem 1.5rem; }
       footer { flex-direction: column; text-align: center; }
+      .cta-price-block { flex-wrap: wrap; }
     }
-
-    /* Windows store badge colours */
-    .ms-store-svg { display: inline-block; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -566,9 +635,20 @@
     File Organizer
   </a>
   <a class="nav-cta" href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener">
-    Get it — $2.99
+    Get it —
+    <span class="nav-price-old">$4.99</span>
+    <span class="nav-price-new">$2.49</span>
   </a>
 </nav>
+
+<!-- SALE BANNER -->
+<div class="sale-banner">
+  <div class="sale-banner-inner">
+    <span class="sale-pill">🔥 LIMITED TIME</span>
+    50% OFF — Get it for $2.49 instead of $4.99
+    <span class="sale-pill">50% OFF</span>
+  </div>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -587,7 +667,10 @@
     <a class="btn-primary" href="https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.2" fill="#fff"/><rect x="10" y="1" width="7" height="7" rx="1.2" fill="#fff" opacity=".7"/><rect x="1" y="10" width="7" height="7" rx="1.2" fill="#fff" opacity=".7"/><rect x="10" y="10" width="7" height="7" rx="1.2" fill="#fff" opacity=".5"/></svg>
       Download from Microsoft Store
-      <span class="price-tag">$2.99</span>
+      <span class="price-tag">
+        <span class="old-price">$4.99</span>
+        <span class="new-price">$2.49</span>
+      </span>
     </a>
     <a class="btn-secondary" href="#features">
       See features ↓
@@ -622,11 +705,6 @@
     <h2 class="section-title">Clean, powerful interfaces.<br>Light &amp; dark mode included.</h2>
   </div>
   <div class="screenshots-grid">
-    <!--
-      Screenshot cards: the JS below will attempt to load screenshot-1.jpg through
-      screenshot-4.jpg (place them alongside this HTML on GitHub Pages).
-      Each card falls back to the .ss-placeholder if the image fails to load.
-    -->
     <div class="screenshot-card">
       <div class="ss-placeholder" style="display:flex; background:var(--surface2); height:280px; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;">
         <span style="font-size:2.5rem;">📂</span>
@@ -792,7 +870,7 @@
     </div>
     <div class="comp-row">
       <div class="comp-cell feature-name">Price</div>
-      <div class="comp-cell ours" style="color:var(--price);">$2.99 once</div>
+      <div class="comp-cell ours" style="color:var(--price);">$2.49 <span style="color:var(--muted); text-decoration:line-through; font-size:.85rem;">$4.99</span></div>
       <div class="comp-cell theirs">$0 + bloatware</div>
     </div>
     <div class="comp-row">
@@ -807,8 +885,12 @@
 <section class="cta-section reveal">
   <div class="cta-box">
     <div class="cta-glow"></div>
-    <div class="cta-price">$2.99</div>
-    <div class="cta-price-note">One-time purchase. No subscription. No nonsense.</div>
+    <div class="cta-price-block">
+      <span class="cta-price-old">$4.99</span>
+      <span class="cta-price-new">$2.49</span>
+      <span class="cta-sale-badge">50% OFF</span>
+    </div>
+    <div class="cta-price-note">Limited-time sale. One-time purchase. No subscription. No nonsense.</div>
     <h2 class="cta-title">Ready for a tidy PC?</h2>
     <p class="cta-sub">Join the users who already reclaimed their storage and their sanity. Get File Organizer &amp; Duplicate Remover right now on the Microsoft Store.</p>
     <div class="cta-features-list">
@@ -836,7 +918,6 @@
 
 <!-- SCROLL REVEAL JS -->
 <script>
-  // ── Scroll-reveal observer ──
   const reveals = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
@@ -848,15 +929,11 @@
   }, { threshold: 0.1 });
   reveals.forEach(el => io.observe(el));
 
-  // ── Screenshot injection ──
-  // Place screenshot-1.jpg through screenshot-4.jpg alongside this HTML file
-  // on GitHub Pages. Each image is injected before its placeholder; if the
-  // image fails to load the placeholder remains visible as a fallback.
   const screenshotSrcs = [
-    'screenshot-1.jpg', // Organizer — Light Mode
-    'screenshot-2.jpg', // Organizer — Dark Mode
-    'screenshot-3.jpg', // Deduplicator — Light Mode
-    'screenshot-4.jpg', // Deduplicator — Dark Mode
+    'screenshot-1.jpg',
+    'screenshot-2.jpg',
+    'screenshot-3.jpg',
+    'screenshot-4.jpg',
   ];
 
   document.querySelectorAll('.screenshot-card').forEach((card, i) => {
@@ -869,22 +946,16 @@
     const img = document.createElement('img');
     img.alt = placeholder ? placeholder.innerText.trim() : '';
     img.style.width = '100%';
-    img.style.display = 'none'; // hidden until successfully loaded
+    img.style.display = 'none';
 
     img.addEventListener('load', () => {
       img.style.display = 'block';
       if (placeholder) placeholder.style.display = 'none';
     });
 
-    img.addEventListener('error', () => {
-      // Image unavailable — placeholder remains visible, nothing to do.
-      img.remove();
-    });
+    img.addEventListener('error', () => { img.remove(); });
 
-    // Insert the img before the placeholder so the label stays on top.
     card.insertBefore(img, placeholder);
-
-    // Set src after attaching listeners.
     img.src = src;
   });
 </script>
