@@ -1,5 +1,5 @@
-# 📁 File Organizer & Duplicate Remover — Landing Page
+# 📁 File Sorcerer — Landing Page
 
-Landing page for [File Organizer & Duplicate Remover](https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare), a Windows app available on the Microsoft Store for **$2.99**.
+Landing page for [File Sorcerer](https://apps.microsoft.com/detail/9nfvvt296q0n?ocid=webpdpshare), a Windows app available on the Microsoft Store for **$4.99**.
 
 🌐 **[View the site](https://sameerahmed419.github.io/filesorg-sameer/)**
