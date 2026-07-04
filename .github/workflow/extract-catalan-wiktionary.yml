@@ -1,0 +1,135 @@
+name: Extract Catalan Wiktionary Dictionary
+
+# Manual trigger only.
+on:
+  workflow_dispatch:
+    inputs:
+      dump_date:
+        description: >
+          Wiktionary dump date to use, in YYYYMMDD form (e.g. 20260701).
+          Use "latest" to always fetch whatever Wikimedia currently publishes as latest.
+        required: false
+        default: "latest"
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    # Full Catalan Wiktionary extraction with Lua module expansion can take a
+    # while, especially if the dump is large or the runner is under load.
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout (optional, only needed if you want to commit output back)
+        uses: actions/checkout@v4
+
+      # Pin to Python 3.12 deliberately. Python 3.14 changed the default
+      # multiprocessing start method away from fork() on POSIX to forkserver,
+      # which breaks wikitextprocessor's worker-pool model (it relies on
+      # fork() implicitly sharing the initialized Wtp context into child
+      # processes). Python 3.12 keeps fork() as default, so wiktwords can use
+      # multiple threads/processes safely without patching anything.
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pipx
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --user pipx
+          python -m pipx ensurepath
+
+      - name: Install wiktextract via pipx
+        run: |
+          pipx install wiktextract
+
+      - name: Determine dump filename
+        id: dump
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event.inputs.dump_date }}" = "latest" ] || [ -z "${{ github.event.inputs.dump_date }}" ]; then
+            DUMP_URL="https://dumps.wikimedia.org/cawiktionary/latest/cawiktionary-latest-pages-articles-multistream.xml.bz2"
+            OUT_NAME="cawiktionary-latest-pages-articles-multistream.xml.bz2"
+          else
+            DATE="${{ github.event.inputs.dump_date }}"
+            DUMP_URL="https://dumps.wikimedia.org/cawiktionary/${DATE}/cawiktionary-${DATE}-pages-articles-multistream.xml.bz2"
+            OUT_NAME="cawiktionary-${DATE}-pages-articles-multistream.xml.bz2"
+          fi
+          echo "dump_url=${DUMP_URL}" >> "$GITHUB_OUTPUT"
+          echo "dump_file=${OUT_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Catalan Wiktionary dump
+        run: |
+          set -euo pipefail
+          echo "Downloading: ${{ steps.dump.outputs.dump_url }}"
+          curl -fL --retry 5 --retry-delay 10 -o "${{ steps.dump.outputs.dump_file }}" "${{ steps.dump.outputs.dump_url }}"
+          ls -lh "${{ steps.dump.outputs.dump_file }}"
+
+      - name: Show available CPU count
+        run: nproc
+
+      - name: Run wiktwords extraction (Catalan words only, full data)
+        run: |
+          set -euo pipefail
+          # --language Catalan restricts extraction to entries in the
+          # "Catalan" language section of each page (ca.wiktionary.org pages
+          # can contain sections for multiple languages).
+          #
+          # No --senses / --pos / other narrowing flags: this pulls the full
+          # default extraction (definitions, POS, forms, etymologies,
+          # pronunciations, translations, linkages, etc. as supported by this
+          # wiktextract version) so nothing is dropped.
+          #
+          # --num-threads uses all available cores since we're on a fresh
+          # Python 3.12 runner where fork() based multiprocessing works
+          # correctly.
+          wiktwords \
+            --language Catalan \
+            --all \
+            --out catalan_wiktionary_full.jsonl \
+            --num-threads "$(nproc)" \
+            "${{ steps.dump.outputs.dump_file }}"
+
+      - name: Report output stats
+        run: |
+          set -euo pipefail
+          wc -l catalan_wiktionary_full.jsonl
+          ls -lh catalan_wiktionary_full.jsonl
+          echo "First entry:"
+          head -n 1 catalan_wiktionary_full.jsonl
+
+      - name: Compress output
+        run: |
+          zstd -19 -T0 -o catalan_wiktionary_full.jsonl.zst catalan_wiktionary_full.jsonl || \
+          gzip -9 -k catalan_wiktionary_full.jsonl
+
+      - name: Upload extracted JSONL as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalan-wiktionary-jsonl
+          path: |
+            catalan_wiktionary_full.jsonl.zst
+            catalan_wiktionary_full.jsonl.gz
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Create GitHub Release with dictionary attached
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: catalan-dict-${{ github.run_id }}
+          name: Catalan Wiktionary extract (${{ steps.dump.outputs.dump_file }})
+          body: |
+            Full Catalan-language Wiktionary extraction, generated via wiktwords
+            (wiktextract) from `${{ steps.dump.outputs.dump_file }}`.
+
+            Contains all entries in the Catalan language section of
+            ca.wiktionary.org pages, including senses, POS, forms/inflections,
+            etymologies, pronunciations, translations, and linkages, expanded
+            through wiktextract's full Lua module execution (conjugation
+            tables and other template-generated data are included, not just
+            raw template calls).
+          files: |
+            catalan_wiktionary_full.jsonl.zst
+            catalan_wiktionary_full.jsonl.gz
+          fail_on_unmatched_files: false
